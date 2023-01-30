@@ -9,15 +9,67 @@ import {
   TaskInput,
 } from './styles'
 import { useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { differenceInSeconds } from 'date-fns'
+
+interface NewCycleFormData {
+  task: string
+  minuteAmount: number
+}
+
+interface Cycle {
+  id: string
+  task: string
+  minuteAmount: number
+  startDate: Date
+}
 
 export function Home() {
-  const { register, handleSubmit, watch } = useForm()
+  const [cycles, setCycles] = useState<Cycle[]>([])
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondsLeft, setAmountSecondsLeft] = useState(0)
+
+  const { register, handleSubmit, watch, reset } = useForm({
+    defaultValues: {
+      task: '',
+      minuteAmount: 0,
+    },
+  })
+
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountSecondsLeft(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
 
   const task = watch('task')
   const isSubmitDisabled = !task
+  const totalSeconds = activeCycle ? activeCycle.minuteAmount * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsLeft : 0
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+  const minutes = String(minutesAmount).padStart(2, '0')
+  const seconds = String(secondsAmount).padStart(2, '0')
 
-  function handleCreateNewCycle(data){
-    console.log(data)
+  function handleCreateNewCycle(data: NewCycleFormData) {
+    const newId = String(new Date().getTime())
+
+    const newCycle: Cycle = {
+      id: newId,
+      task: data.task,
+      minuteAmount: data.minuteAmount,
+      startDate: new Date(),
+    }
+
+    setCycles((state) => [...cycles, newCycle])
+    setActiveCycleId(newId)
+    reset()
   }
 
   return (
@@ -38,7 +90,7 @@ export function Home() {
             <option value="Projeto 03" />
           </datalist>
 
-          <label htmlFor="minutesAmount">durante</label>
+          <label htmlFor="minuteAmount">durante</label>
           <MinutesAmountInput
             id="minutesAmount"
             type="number"
@@ -46,18 +98,18 @@ export function Home() {
             step={5}
             min={5}
             max={60}
-            {...register('minutesAmount', { valueAsNumber: true })}
+            {...register('minuteAmount', { valueAsNumber: true })}
           />
 
           <span>minutos.</span>
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutes[0]}</span>
+          <span>{minutes[1]}</span>
           <Separator>:</Separator>
-          <span>0</span>
-          <span>0</span>
+          <span>{seconds[0]}</span>
+          <span>{seconds[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton disabled={isSubmitDisabled} type="submit">

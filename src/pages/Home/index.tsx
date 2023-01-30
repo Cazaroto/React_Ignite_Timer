@@ -27,7 +27,7 @@ interface Cycle {
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
-  const [amountSecondsLeft, setAmountSecondsLeft] = useState(0)
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   const { register, handleSubmit, watch, reset } = useForm({
     defaultValues: {
@@ -39,23 +39,35 @@ export function Home() {
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   useEffect(() => {
+    let interval: number
+
     if (activeCycle) {
-      setInterval(() => {
-        setAmountSecondsLeft(
+      interval = setInterval(() => {
+        setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startDate),
         )
       }, 1000)
+    }
+
+    return () => {
+      clearInterval(interval)
     }
   }, [activeCycle])
 
   const task = watch('task')
   const isSubmitDisabled = !task
   const totalSeconds = activeCycle ? activeCycle.minuteAmount * 60 : 0
-  const currentSeconds = activeCycle ? totalSeconds - amountSecondsLeft : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
   const minutesAmount = Math.floor(currentSeconds / 60)
   const secondsAmount = currentSeconds % 60
   const minutes = String(minutesAmount).padStart(2, '0')
   const seconds = String(secondsAmount).padStart(2, '0')
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `Timer: ${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const newId = String(new Date().getTime())
@@ -69,6 +81,7 @@ export function Home() {
 
     setCycles((state) => [...cycles, newCycle])
     setActiveCycleId(newId)
+    setAmountSecondsPassed(0)
     reset()
   }
 

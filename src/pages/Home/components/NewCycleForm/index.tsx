@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { useFormContext } from 'react-hook-form'
-import { CyclesContext } from '../..'
-import { FormContainer, TaskInput, MinutesAmountInput } from './styles'
+import { CyclesContext } from '../../../../contexts/CycleContext'
+import { FormContainer, TaskInput, MinuteAmountInput } from './styles'
 
 export function NewCycleForm() {
   const { activeCycle } = useContext(CyclesContext)
@@ -25,8 +25,8 @@ export function NewCycleForm() {
       </datalist>
 
       <label htmlFor="minuteAmount">durante</label>
-      <MinutesAmountInput
-        id="minutesAmount"
+      <MinuteAmountInput
+        id="minuteAmount"
         type="number"
         placeholder="00"
         step={5}

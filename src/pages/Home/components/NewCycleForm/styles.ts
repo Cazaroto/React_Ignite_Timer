@@ -40,6 +40,6 @@ export const TaskInput = styled(BaseInput)`
   }
 `
 
-export const MinutesAmountInput = styled(BaseInput)`
+export const MinuteAmountInput = styled(BaseInput)`
   width: 4rem;
 `
